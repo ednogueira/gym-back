@@ -15,14 +15,17 @@ import java.util.Optional;
 @Repository
 public interface PagamentoRepository extends JpaRepository<Pagamento, Long> {
 
-    //Busca pagamento por id
+    /**Busca pagamento por id**/
+
     Optional<Pagamento> findById(Long id);
 
-    //Lista os últimos 3 pagamentos realizados pelo cliente.
-    @Query(value = "SELECT * FROM GYM_PAGAMENTO p where p.ID_CLIENTE = :cliente order by p.DATA_PAGAMENTO desc limit 3", nativeQuery = true)
-    ArrayList<Pagamento> findLastPagamentoCliente(@Param("cliente") Cliente cliente);
+    /**Lista os últimos 3 pagamentos realizados pelo cliente.**/
 
-    //Lista todos pagamentos realizados durante o período informado.
+    @Query(value = "SELECT * FROM GYM_PAGAMENTO p where p.ID_CLIENTE = :cliente order by p.DATA_PAGAMENTO desc limit 3", nativeQuery = true)
+    ArrayList<Pagamento> findLastPagamentoCliente(@Param("cliente") Long idCliente);
+
+    /**Lista todos pagamentos realizados durante o período informado.**/
+
     //@Query(value = "from Pagamento p where p.cliente = :cliente AND p.dataPagamento BETWEEN :dataInicial AND :dataFinal")
     ArrayList<Pagamento> findByCliente_IdAndDataPagamentoBetween(
             Long cliente,
