@@ -6,15 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
-import javax.validation.constraints.Future;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
 import java.io.Serializable;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Data
@@ -29,29 +28,31 @@ public class Cliente implements Serializable {
     @Column(name = "ID")
     private Long id;
 
-    @NotBlank
+    @NotBlank(message = "Nome deve ser preenchido")
     @JsonView({View.All.class})
     @Column(name = "NOME")
     private String nome;
 
-    @NotBlank
+    @NotBlank(message = "Sobrenome deve ser preenchido")
     @JsonView({View.All.class})
     @Column(name = "SOBRENOME")
     private String sobrenome;
 
-    @NotBlank
+    @NotBlank(message = "CPF deve ser preenchido")
+    @Size(min = 11, max = 11, message = "CPF deve ter 11 dígitos")
     @JsonView({View.All.class})
-    @Column(name = "CPF")
+    @Column(name = "CPF", updatable = false)
     private String cpf;
 
-    @NotBlank
+    @NotBlank(message = "RG deve ser preenchido")
     @JsonView({View.All.class})
     @Column(name = "RG")
     private String rg;
 
-    @NotNull
+    @NotNull(message = "Endereço deve ser preenchido corretamente.")
     @JsonView({View.All.class})
     @Embedded
+    @Valid
     @AttributeOverrides({
             @AttributeOverride(name = "cep", column = @Column(name = "CEP")),
             @AttributeOverride(name = "rua", column = @Column(name = "RUA")),
@@ -64,7 +65,7 @@ public class Cliente implements Serializable {
     @Column(name = "ENDERECO")
     private Endereco endereco;
 
-    @NotBlank
+    @NotBlank(message = "Telefone deve ser preenchido")
     @JsonView({View.All.class})
     @Column(name = "TELEFONE")
     private String telefone;
@@ -75,7 +76,7 @@ public class Cliente implements Serializable {
     private EPlano tipoPlano;
 
     @Future
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    //@DateTimeFormat(pattern = "dd/MM/yyyy")
     @JsonView({View.All.class})
     @Column(name = "DATA_VALIDADE")
     private LocalDate validadePlano;
@@ -84,8 +85,19 @@ public class Cliente implements Serializable {
     @Column(name = "SALDO_FERIAS")
     private Integer saldoFerias;
 
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    //@DateTimeFormat(pattern = "dd/MM/yyyy")
     @JsonView({View.All.class})
     @Column(name = "ULTIMA_MODIFICACAO")
-    private Instant ultimaModificacao;
+    private LocalDateTime ultimaModificacao;
+
+/*    @JsonView({View.All.class})
+    @OneToMany(targetEntity = Pagamento.class, mappedBy = "cliente", cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
+    private Set<Pagamento> pagamento;
+
+    @JsonView({View.All.class})
+    @OneToMany(targetEntity = Ferias.class, mappedBy = "cliente", cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
+    private Set<Ferias> ferias;*/
+
 }

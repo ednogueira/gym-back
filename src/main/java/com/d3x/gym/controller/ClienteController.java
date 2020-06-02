@@ -2,14 +2,22 @@ package com.d3x.gym.controller;
 
 import com.d3x.gym.model.Cliente;
 import com.d3x.gym.repository.ClienteRepository;
+import com.d3x.gym.view.View;
+import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import javax.validation.Valid;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,13 +25,15 @@ import java.util.Optional;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/clientes")
+@Validated
 public class ClienteController {
 
         @Autowired
         private ClienteRepository clienteRepo;
 
+        //@JsonView(View.Alternative.class)
         @ApiOperation(value = "Retorna os últimos 5 clientes modificados no sistema.")
-        @GetMapping("/modificados")
+        @GetMapping("/")
         public ResponseEntity<List<Cliente>> listaClientesModificados() {
                 List<Cliente> clienteList = clienteRepo.findByLastClientesModificados();
                 if (clienteList.isEmpty()){
@@ -32,6 +42,7 @@ public class ClienteController {
                 return new ResponseEntity<List<Cliente>>(clienteList,HttpStatus.OK);
         }
 
+        //@JsonView(View.Alternative.class)
         @ApiOperation(value = "Solicita a busca do cliente por id/matricula.")
         @GetMapping(value = "/{id}")
         public ResponseEntity<Optional<Cliente>> buscarClientePorId(@PathVariable(value = "id") Long id) {
@@ -42,6 +53,8 @@ public class ClienteController {
                 return new ResponseEntity<Optional<Cliente>>(cliente,HttpStatus.OK);
         }
 
+        //@JsonView(View.Alternative.class)
+        @GetMapping(value = "/")
         @ApiOperation(value = "Solicita a busca do cliente por CPF.")
         @RequestMapping(method = RequestMethod.GET)
         public ResponseEntity<Optional<Cliente>> buscarClientePorCpf(@RequestParam(value = "cpf") String cpf) {
@@ -51,5 +64,42 @@ public class ClienteController {
                 }
                 return new ResponseEntity<Optional<Cliente>>(cliente,HttpStatus.OK);
         }
+
+        //@JsonView(View.Alternative.class)
+        @PostMapping("/")
+        @ApiOperation(value = "Solicita o cadastro de um novo cliente.")
+        ResponseEntity<?> saveCliente(@Valid @RequestBody Cliente cliente) throws URISyntaxException {
+                if (clienteRepo.findByCpf(cliente.getCpf()).isPresent()) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Já existe um cliente com o CPF: "
+                        + cliente.getCpf());
+                }
+                cliente.setUltimaModificacao(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("America/Sao_Paulo")));
+                Cliente result = clienteRepo.save(cliente);
+                return ResponseEntity.created(new URI("/api/cliente/" + result.getId()))
+                        .body(result);
+        }
+
+        //@JsonView(View.Alternative.class)
+        @PutMapping("/{id}")
+        @ApiOperation(value = "Solicita a atualização dos dados de um cliente.")
+        ResponseEntity<Cliente> updateCliente(@Valid @RequestBody Cliente cliente) {
+                cliente.setUltimaModificacao(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("America/Sao_Paulo")));
+                Cliente result = clienteRepo.save(cliente);
+                return ResponseEntity.ok().body(result);
+        }
+
+        //@JsonView(View.Alternative.class)
+        @DeleteMapping("/{id}")
+        @ApiOperation(value = "Solicita a deleção de um cliente.")
+        public ResponseEntity<?> deleteCliente(@PathVariable Long id) {
+                Optional<Cliente> cliente = clienteRepo.findById(id);
+                if (cliente.isEmpty()){
+                        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+                clienteRepo.deleteById(id);
+                return ResponseEntity.ok().build();
+        }
+
+
 
 }

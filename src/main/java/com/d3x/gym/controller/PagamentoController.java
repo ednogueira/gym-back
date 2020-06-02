@@ -12,6 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -49,8 +52,8 @@ public class PagamentoController {
     }
 
     @ApiOperation(value = "Retorna os pagamentos realizados pelo cliente no período buscado.")
-    @GetMapping("/buscar/")
-    @JsonView(View.Alternative.class)
+    @GetMapping("/")
+    @JsonView(View.Main.class)
     public ResponseEntity<List<Pagamento>> buscarPagamentoPorData(@RequestParam(value = "idCliente") Long id,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicial,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal) {
@@ -59,6 +62,26 @@ public class PagamentoController {
             return new ResponseEntity<>(pagamentoList,HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<List<Pagamento>>(pagamentoList, HttpStatus.OK);
+    }
+
+    @PostMapping("/")
+    @ApiOperation(value = "Solicita o cadastro de um pagamento para um cliente.")
+    ResponseEntity<?> savePagamento(@Valid @RequestBody Pagamento pagamento) throws URISyntaxException {
+        Pagamento result = pagamentoRepo.save(pagamento);
+        return ResponseEntity.created(new URI("/api/cliente/" + result.getId()))
+                .body(result);
+    }
+
+    @DeleteMapping("/{idPagamento}")
+    @ApiOperation(value = "Solicita a deleção de um pagamento.")
+    public ResponseEntity<?> deletePagamento(@Valid @PathVariable Long id) {
+        Optional<Pagamento> pagamento = pagamentoRepo.findById(id);
+        if (pagamento.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        pagamentoRepo.delete(pagamento.get());
+        return ResponseEntity.ok().build();
     }
 
 }
