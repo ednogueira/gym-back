@@ -7,6 +7,8 @@ import com.d3x.gym.repository.ClienteRepository;
 import com.d3x.gym.repository.PagamentoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -21,6 +23,18 @@ public class PagamentoService {
     ClienteRepository clienteRepository;
 
     public Optional<Pagamento> findById(Long id){ return pagamentoRepository.findById(id); }
+
+    public List<Pagamento> findByCliente_IdAndDataPagamentoBetween(Long id, LocalDate dataInicial, LocalDate dataFinal) {
+        return pagamentoRepository.findByCliente_IdAndDataPagamentoBetween(id, dataInicial, dataFinal);
+    }
+
+    public List<Pagamento> findLastPagamentoCliente(Long id) {
+        return pagamentoRepository.findLastPagamentoCliente(id);
+    }
+
+    public void delete(Pagamento pagamento){
+        pagamentoRepository.delete(pagamento);
+    }
 
     public Pagamento save(Pagamento pagamento, Long idCliente, EPlano plano){
         Optional<Cliente> cliente = clienteRepository.findById(idCliente);
@@ -38,9 +52,5 @@ public class PagamentoService {
         clienteRepository.save(cliente.get());
         pagamento.setCliente(cliente.get());
         return pagamentoRepository.save(pagamento);
-    }
-
-    public void delete(Pagamento pagamento){
-        pagamentoRepository.delete(pagamento);
     }
 }

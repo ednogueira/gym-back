@@ -1,15 +1,14 @@
 package com.d3x.gym.repository;
 
-import com.d3x.gym.model.Cliente;
 import com.d3x.gym.model.Pagamento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -27,7 +26,7 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, Long> {
     /**Lista todos pagamentos realizados durante o período informado.**/
 
     //@Query(value = "from Pagamento p where p.cliente = :cliente AND p.dataPagamento BETWEEN :dataInicial AND :dataFinal")
-    ArrayList<Pagamento> findByCliente_IdAndDataPagamentoBetween(
+    List<Pagamento> findByCliente_IdAndDataPagamentoBetween(
             Long cliente,
             LocalDate dataIncial,
             LocalDate dataFinal

@@ -4,7 +4,6 @@ import com.d3x.gym.model.Cliente;
 import com.d3x.gym.model.EPlano;
 import com.d3x.gym.model.Pagamento;
 import com.d3x.gym.repository.ClienteRepository;
-import com.d3x.gym.repository.PagamentoRepository;
 import com.d3x.gym.service.PagamentoService;
 import com.d3x.gym.view.View;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -31,9 +30,6 @@ public class PagamentoController {
     public static final String MENSAL = "MENSAL";
 
     @Autowired
-    private PagamentoRepository pagamentoRepo;
-
-    @Autowired
     private PagamentoService pagamentoService;
 
     @Autowired
@@ -44,7 +40,7 @@ public class PagamentoController {
     @GetMapping("/{idCliente}")
     @JsonView(View.Main.class)
     public ResponseEntity<List<Pagamento>> listaPagamentosCliente(@PathVariable(value = "idCliente") Long id) {
-        List<Pagamento> pagamentoList = pagamentoRepo.findLastPagamentoCliente(id);
+        List<Pagamento> pagamentoList = pagamentoService.findLastPagamentoCliente(id);
         if (pagamentoList.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -56,7 +52,7 @@ public class PagamentoController {
     @JsonView(View.All.class)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<Optional<Pagamento>> buscarPagamentoPorId(@RequestParam(value = "idPagamento") Long id) {
-        Optional<Pagamento> pagamento = pagamentoRepo.findById(id);
+        Optional<Pagamento> pagamento = pagamentoService.findById(id);
         if (pagamento.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -69,7 +65,7 @@ public class PagamentoController {
     public ResponseEntity<List<Pagamento>> buscarPagamentoPorData(@RequestParam(value = "idCliente") Long id,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicial,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal) {
-        List<Pagamento> pagamentoList = pagamentoRepo.findByCliente_IdAndDataPagamentoBetween(id, dataInicial, dataFinal);
+        List<Pagamento> pagamentoList = pagamentoService.findByCliente_IdAndDataPagamentoBetween(id, dataInicial, dataFinal);
         if (pagamentoList.isEmpty()){
             return new ResponseEntity<>(pagamentoList,HttpStatus.NOT_FOUND);
         }
@@ -90,12 +86,26 @@ public class PagamentoController {
 
     }
 
+    @PutMapping("/{idPagamento}")
+    @ApiOperation(value = "Solicita a atualização para um pagamento realizado por cliente.")
+    ResponseEntity<?> updatePagamento(@PathVariable(value = "idPagamento") Long idPagamento,
+                                      @RequestParam(value = "idCliente") Long idCliente,
+                                      @RequestParam(value = "plano") EPlano plano,
+                                      @Valid @RequestBody Pagamento pagamento) {
+        if (pagamentoService.findById(idPagamento).isEmpty() || clienteRepository.findById(idCliente).isEmpty()
+                || (plano != EPlano.ANUAL && plano != EPlano.MENSAL)){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Pagamento não encontrado ou plano de mensalidade inválido");
+        }
+        pagamento.setId(pagamentoService.findById(idPagamento).get().getId());
+        return new ResponseEntity<Pagamento>(pagamentoService.save(pagamento, idCliente, plano), HttpStatus.CREATED);
+    }
+
     @DeleteMapping("/delete/{idPagamento}")
     @ApiOperation(value = "Solicita a deleção de um pagamento.")
     public ResponseEntity<?> deletePagamento(@PathVariable(value = "idPagamento") Long id) {
-        Optional<Pagamento> pagamento = pagamentoRepo.findById(id);
+        Optional<Pagamento> pagamento = pagamentoService.findById(id);
         if (pagamento.isPresent()) {
-            pagamentoRepo.delete(pagamento.get());
+            pagamentoService.delete(pagamento.get());
             return ResponseEntity.ok().build();
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);

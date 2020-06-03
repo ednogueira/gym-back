@@ -1,6 +1,7 @@
 package com.d3x.gym.model;
 
 import com.d3x.gym.view.View;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.sun.istack.NotNull;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,7 @@ public class Pagamento implements Serializable {
     @Column(name = "ID")
     private Long id;
 
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonView({View.All.class})
     @JoinColumn(name = "ID_CLIENTE")
