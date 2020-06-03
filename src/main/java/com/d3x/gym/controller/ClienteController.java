@@ -2,14 +2,12 @@ package com.d3x.gym.controller;
 
 import com.d3x.gym.model.Cliente;
 import com.d3x.gym.repository.ClienteRepository;
-import com.d3x.gym.view.View;
-import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -24,16 +22,14 @@ import java.util.Optional;
 @Api(value = "API Rest para consultas e gerenciamento da clientes")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/clientes")
-@Validated
+@RequestMapping(value = "/api/clientes/", produces = {MediaType.APPLICATION_JSON_VALUE})
 public class ClienteController {
 
         @Autowired
         private ClienteRepository clienteRepo;
 
-        //@JsonView(View.Alternative.class)
         @ApiOperation(value = "Retorna os últimos 5 clientes modificados no sistema.")
-        @GetMapping("/")
+        @GetMapping("/modificados")
         public ResponseEntity<List<Cliente>> listaClientesModificados() {
                 List<Cliente> clienteList = clienteRepo.findByLastClientesModificados();
                 if (clienteList.isEmpty()){
@@ -42,9 +38,8 @@ public class ClienteController {
                 return new ResponseEntity<List<Cliente>>(clienteList,HttpStatus.OK);
         }
 
-        //@JsonView(View.Alternative.class)
         @ApiOperation(value = "Solicita a busca do cliente por id/matricula.")
-        @GetMapping(value = "/{id}")
+        @GetMapping("/{id}")
         public ResponseEntity<Optional<Cliente>> buscarClientePorId(@PathVariable(value = "id") Long id) {
                 Optional<Cliente> cliente = clienteRepo.findById(id);
                 if (cliente.isEmpty()){
@@ -53,8 +48,6 @@ public class ClienteController {
                 return new ResponseEntity<Optional<Cliente>>(cliente,HttpStatus.OK);
         }
 
-        //@JsonView(View.Alternative.class)
-        @GetMapping(value = "/")
         @ApiOperation(value = "Solicita a busca do cliente por CPF.")
         @RequestMapping(method = RequestMethod.GET)
         public ResponseEntity<Optional<Cliente>> buscarClientePorCpf(@RequestParam(value = "cpf") String cpf) {
@@ -65,8 +58,7 @@ public class ClienteController {
                 return new ResponseEntity<Optional<Cliente>>(cliente,HttpStatus.OK);
         }
 
-        //@JsonView(View.Alternative.class)
-        @PostMapping("/")
+        @PostMapping("/criar")
         @ApiOperation(value = "Solicita o cadastro de um novo cliente.")
         ResponseEntity<?> saveCliente(@Valid @RequestBody Cliente cliente) throws URISyntaxException {
                 if (clienteRepo.findByCpf(cliente.getCpf()).isPresent()) {
@@ -79,7 +71,6 @@ public class ClienteController {
                         .body(result);
         }
 
-        //@JsonView(View.Alternative.class)
         @PutMapping("/{id}")
         @ApiOperation(value = "Solicita a atualização dos dados de um cliente.")
         ResponseEntity<Cliente> updateCliente(@Valid @RequestBody Cliente cliente) {
@@ -88,7 +79,6 @@ public class ClienteController {
                 return ResponseEntity.ok().body(result);
         }
 
-        //@JsonView(View.Alternative.class)
         @DeleteMapping("/{id}")
         @ApiOperation(value = "Solicita a deleção de um cliente.")
         public ResponseEntity<?> deleteCliente(@PathVariable Long id) {

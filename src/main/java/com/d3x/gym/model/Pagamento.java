@@ -11,8 +11,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import javax.validation.constraints.Digits;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.PastOrPresent;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -33,7 +31,6 @@ public class Pagamento implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonView({View.All.class})
-    @NotEmpty(message = "Deve ser informado o Id do cliente")
     @JoinColumn(name = "ID_CLIENTE")
     private Cliente cliente;
 
@@ -51,7 +48,6 @@ public class Pagamento implements Serializable {
 
     @JsonView({View.Main.class})
     @Enumerated(EnumType.STRING)
-    @NotBlank(message = "Uma forma de pagamento deve ser informada")
     @Column(name = "FORMA_PAGAMENTO")
     private EFormaPagamento formaPagamento;
 

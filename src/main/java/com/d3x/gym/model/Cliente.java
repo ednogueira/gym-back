@@ -1,6 +1,7 @@
 package com.d3x.gym.model;
 
 import com.d3x.gym.view.View;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -76,7 +77,6 @@ public class Cliente implements Serializable {
     private EPlano tipoPlano;
 
     @Future
-    //@DateTimeFormat(pattern = "dd/MM/yyyy")
     @JsonView({View.All.class})
     @Column(name = "DATA_VALIDADE")
     private LocalDate validadePlano;
@@ -85,19 +85,16 @@ public class Cliente implements Serializable {
     @Column(name = "SALDO_FERIAS")
     private Integer saldoFerias;
 
-    //@DateTimeFormat(pattern = "dd/MM/yyyy")
     @JsonView({View.All.class})
     @Column(name = "ULTIMA_MODIFICACAO")
     private LocalDateTime ultimaModificacao;
 
-/*    @JsonView({View.All.class})
-    @OneToMany(targetEntity = Pagamento.class, mappedBy = "cliente", cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY)
+    @JsonIgnore
+    @OneToMany(mappedBy = "cliente")
     private Set<Pagamento> pagamento;
 
-    @JsonView({View.All.class})
-    @OneToMany(targetEntity = Ferias.class, mappedBy = "cliente", cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY)
-    private Set<Ferias> ferias;*/
+    @JsonIgnore
+    @OneToMany(mappedBy = "cliente")
+    private Set<Ferias> ferias;
 
 }

@@ -1,7 +1,11 @@
 package com.d3x.gym.controller;
 
+import com.d3x.gym.model.Cliente;
+import com.d3x.gym.model.EPlano;
 import com.d3x.gym.model.Pagamento;
+import com.d3x.gym.repository.ClienteRepository;
 import com.d3x.gym.repository.PagamentoRepository;
+import com.d3x.gym.service.PagamentoService;
 import com.d3x.gym.view.View;
 import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.annotations.Api;
@@ -13,8 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -25,8 +27,18 @@ import java.util.Optional;
 @RequestMapping("/api/pagamentos")
 public class PagamentoController {
 
+    public static final String ANUAL = "ANUAL";
+    public static final String MENSAL = "MENSAL";
+
     @Autowired
     private PagamentoRepository pagamentoRepo;
+
+    @Autowired
+    private PagamentoService pagamentoService;
+
+    @Autowired
+    private ClienteRepository clienteRepository;
+
 
     @ApiOperation(value = "Retorna os últimos 3 pagamentos realizados pelo cliente.")
     @GetMapping("/{idCliente}")
@@ -52,7 +64,7 @@ public class PagamentoController {
     }
 
     @ApiOperation(value = "Retorna os pagamentos realizados pelo cliente no período buscado.")
-    @GetMapping("/")
+    @GetMapping("/buscar")
     @JsonView(View.Main.class)
     public ResponseEntity<List<Pagamento>> buscarPagamentoPorData(@RequestParam(value = "idCliente") Long id,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicial,
@@ -64,24 +76,29 @@ public class PagamentoController {
         return new ResponseEntity<List<Pagamento>>(pagamentoList, HttpStatus.OK);
     }
 
-    @PostMapping("/")
+    @PostMapping
+    @JsonView(View.Main.class)
     @ApiOperation(value = "Solicita o cadastro de um pagamento para um cliente.")
-    ResponseEntity<?> savePagamento(@Valid @RequestBody Pagamento pagamento) throws URISyntaxException {
-        Pagamento result = pagamentoRepo.save(pagamento);
-        return ResponseEntity.created(new URI("/api/cliente/" + result.getId()))
-                .body(result);
+    ResponseEntity<?> savePagamento(@RequestParam(value = "idCliente") Long idCLiente,
+                                    @RequestParam(value = "plano") EPlano plano,
+                                    @Valid @RequestBody Pagamento pagamento) {
+        Optional<Cliente> cliente = clienteRepository.findById(idCLiente);
+        if (cliente.isEmpty() || (plano != EPlano.ANUAL && plano != EPlano.MENSAL)){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cliente inválido ou plano de mensalidade inválido");
+        }
+        return new ResponseEntity<Pagamento>(pagamentoService.save(pagamento, idCLiente,plano), HttpStatus.CREATED);
+
     }
 
-    @DeleteMapping("/{idPagamento}")
+    @DeleteMapping("/delete/{idPagamento}")
     @ApiOperation(value = "Solicita a deleção de um pagamento.")
-    public ResponseEntity<?> deletePagamento(@Valid @PathVariable Long id) {
+    public ResponseEntity<?> deletePagamento(@PathVariable(value = "idPagamento") Long id) {
         Optional<Pagamento> pagamento = pagamentoRepo.findById(id);
-        if (pagamento.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (pagamento.isPresent()) {
+            pagamentoRepo.delete(pagamento.get());
+            return ResponseEntity.ok().build();
         }
-
-        pagamentoRepo.delete(pagamento.get());
-        return ResponseEntity.ok().build();
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 }
