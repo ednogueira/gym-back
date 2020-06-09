@@ -76,7 +76,6 @@ public class Cliente implements Serializable {
     @Column(name = "TIPO_PLANO")
     private EPlano tipoPlano;
 
-    @Future
     @JsonView({View.All.class})
     @Column(name = "DATA_VALIDADE")
     private LocalDate validadePlano;
@@ -90,11 +89,11 @@ public class Cliente implements Serializable {
     private LocalDateTime ultimaModificacao;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "cliente")
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
     private Set<Pagamento> pagamento;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "cliente")
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
     private Set<Ferias> ferias;
 
 }
