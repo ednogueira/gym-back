@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -38,6 +39,7 @@ public class FeriasController {
     @ApiOperation(value = "Retorna as últimas 3 ferias agendadas para cliente.")
     @GetMapping("/{idCliente}")
     @JsonView(View.Main.class)
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     public ResponseEntity<List<Ferias>> listaFeriasCliente(@PathVariable(value = "idCliente") Long id) {
         List<Ferias> feriasList = feriasService.findLastFeriasCliente(id);
         if (feriasList.isEmpty()) {
@@ -50,6 +52,7 @@ public class FeriasController {
     @GetMapping("/{idFerias}")
     @JsonView(View.All.class)
     @RequestMapping(method = RequestMethod.GET)
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     public ResponseEntity<Optional<Ferias>> buscarFeriasPorId(@RequestParam(value = "idFerias") Long id) {
         Optional<Ferias> ferias = feriasService.findById(id);
         if (ferias.isEmpty()){
@@ -61,6 +64,7 @@ public class FeriasController {
     @ApiOperation(value = "Retorna as ferias agendadas para cliente no período buscado.")
     @GetMapping("/buscar/")
     @JsonView(View.Main.class)
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     public ResponseEntity<List<Ferias>> buscarFeriasPorData(@RequestParam(value = "idCliente") Long id,
                                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicial,
                                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal) {
@@ -74,6 +78,7 @@ public class FeriasController {
     @PostMapping
     @JsonView(View.Main.class)
     @ApiOperation(value = "Solicita o cadastro de férias para um cliente.")
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     ResponseEntity<?> saveFerias(@RequestParam(value = "idCliente") Long idCLiente,
                                     @Valid @RequestBody Ferias ferias) {
         Optional<Cliente> cliente = clienteRepository.findById(idCLiente);
@@ -88,6 +93,7 @@ public class FeriasController {
 
     @DeleteMapping("/delete/{idFerias}")
     @ApiOperation(value = "Solicita a deleção de um pagamento.")
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     public ResponseEntity<?> deleteFerias(@PathVariable(value = "idFerias") Long id) {
         Optional<Ferias> ferias = feriasService.findById(id);
         if (ferias.isPresent()) {

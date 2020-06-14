@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -30,6 +31,7 @@ public class ClienteController {
 
         @ApiOperation(value = "Retorna os últimos 5 clientes modificados no sistema.")
         @GetMapping("/modificados")
+        @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
         public ResponseEntity<List<Cliente>> listaClientesModificados() {
                 List<Cliente> clienteList = clienteRepo.findByLastClientesModificados();
                 if (clienteList.isEmpty()){
@@ -40,6 +42,7 @@ public class ClienteController {
 
         @ApiOperation(value = "Solicita a busca do cliente por id/matricula.")
         @GetMapping("/{id}")
+        @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
         public ResponseEntity<Optional<Cliente>> buscarClientePorId(@PathVariable(value = "id") Long id) {
                 Optional<Cliente> cliente = clienteRepo.findById(id);
                 if (cliente.isEmpty()){
@@ -50,6 +53,7 @@ public class ClienteController {
 
         @ApiOperation(value = "Solicita a busca do cliente por CPF.")
         @RequestMapping(method = RequestMethod.GET)
+        @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
         public ResponseEntity<Optional<Cliente>> buscarClientePorCpf(@RequestParam(value = "cpf") String cpf) {
                 Optional<Cliente> cliente = clienteRepo.findByCpf(cpf);
                 if (cliente.isEmpty()){
@@ -60,6 +64,7 @@ public class ClienteController {
 
         @PostMapping("/criar")
         @ApiOperation(value = "Solicita o cadastro de um novo cliente.")
+        @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
         ResponseEntity<?> saveCliente(@Valid @RequestBody Cliente cliente) throws URISyntaxException {
                 if (clienteRepo.findByCpf(cliente.getCpf()).isPresent()) {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Já existe um cliente com o CPF: "
@@ -71,8 +76,9 @@ public class ClienteController {
                         .body(result);
         }
 
-        @PutMapping("/{id}")
+        @PutMapping
         @ApiOperation(value = "Solicita a atualização dos dados de um cliente.")
+        @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
         ResponseEntity<Cliente> updateCliente(@Valid @RequestBody Cliente cliente) {
                 cliente.setUltimaModificacao(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("America/Sao_Paulo")));
                 Cliente result = clienteRepo.save(cliente);
@@ -81,6 +87,7 @@ public class ClienteController {
 
         @DeleteMapping("/{id}")
         @ApiOperation(value = "Solicita a deleção de um cliente.")
+        @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
         public ResponseEntity<?> deleteCliente(@PathVariable Long id) {
                 Optional<Cliente> cliente = clienteRepo.findById(id);
                 if (cliente.isEmpty()){

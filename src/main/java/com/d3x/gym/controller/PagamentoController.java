@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -39,6 +40,7 @@ public class PagamentoController {
     @ApiOperation(value = "Retorna os últimos 3 pagamentos realizados pelo cliente.")
     @GetMapping("/{idCliente}")
     @JsonView(View.Main.class)
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     public ResponseEntity<List<Pagamento>> listaPagamentosCliente(@PathVariable(value = "idCliente") Long id) {
         List<Pagamento> pagamentoList = pagamentoService.findLastPagamentoCliente(id);
         if (pagamentoList.isEmpty()){
@@ -51,6 +53,7 @@ public class PagamentoController {
     @GetMapping("/{idPagamento}")
     @JsonView(View.All.class)
     @RequestMapping(method = RequestMethod.GET)
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     public ResponseEntity<Optional<Pagamento>> buscarPagamentoPorId(@RequestParam(value = "idPagamento") Long id) {
         Optional<Pagamento> pagamento = pagamentoService.findById(id);
         if (pagamento.isEmpty()){
@@ -62,6 +65,7 @@ public class PagamentoController {
     @ApiOperation(value = "Retorna os pagamentos realizados pelo cliente no período buscado.")
     @GetMapping("/buscar")
     @JsonView(View.Main.class)
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     public ResponseEntity<List<Pagamento>> buscarPagamentoPorData(@RequestParam(value = "idCliente") Long id,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicial,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal) {
@@ -75,6 +79,7 @@ public class PagamentoController {
     @PostMapping
     @JsonView(View.Main.class)
     @ApiOperation(value = "Solicita o cadastro de um pagamento para um cliente.")
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     ResponseEntity<?> savePagamento(@RequestParam(value = "idCliente") Long idCLiente,
                                     @RequestParam(value = "plano") EPlano plano,
                                     @Valid @RequestBody Pagamento pagamento) {
@@ -82,12 +87,13 @@ public class PagamentoController {
         if (cliente.isEmpty() || (plano != EPlano.ANUAL && plano != EPlano.MENSAL)){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cliente inválido ou plano de mensalidade inválido");
         }
-        return new ResponseEntity<Pagamento>(pagamentoService.save(pagamento, idCLiente,plano), HttpStatus.CREATED);
+        return new ResponseEntity<Pagamento>(pagamentoService.save(pagamento, idCLiente,plano, "ADD"), HttpStatus.CREATED);
 
     }
 
     @PutMapping("/{idPagamento}")
     @ApiOperation(value = "Solicita a atualização para um pagamento realizado por cliente.")
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     ResponseEntity<?> updatePagamento(@PathVariable(value = "idPagamento") Long idPagamento,
                                       @RequestParam(value = "idCliente") Long idCliente,
                                       @RequestParam(value = "plano") EPlano plano,
@@ -97,11 +103,12 @@ public class PagamentoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Pagamento não encontrado ou plano de mensalidade inválido");
         }
         pagamento.setId(pagamentoService.findById(idPagamento).get().getId());
-        return new ResponseEntity<Pagamento>(pagamentoService.save(pagamento, idCliente, plano), HttpStatus.CREATED);
+        return new ResponseEntity<Pagamento>(pagamentoService.save(pagamento, idCliente, plano, "EDIT"), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/delete/{idPagamento}")
     @ApiOperation(value = "Solicita a deleção de um pagamento.")
+    @PreAuthorize("hasRole('RECEPCIONISTA') or hasRole('GERENTE')")
     public ResponseEntity<?> deletePagamento(@PathVariable(value = "idPagamento") Long id) {
         Optional<Pagamento> pagamento = pagamentoService.findById(id);
         if (pagamento.isPresent()) {
