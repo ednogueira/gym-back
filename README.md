@@ -39,7 +39,7 @@ mvn spring-boot:run
 The server should be running on http://localhost:8080 for development environment.
 
 Find all available API RESTful services documentation on http://localhost:8080/swagger-ui.html#/
-
+![Swagger](https://user-images.githubusercontent.com/15540101/84584071-94d7d200-add6-11ea-8d22-b42585abf095.png)
 
 ## Authors
 
